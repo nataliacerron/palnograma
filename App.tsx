@@ -186,13 +186,12 @@ const App: React.FC = () => {
       updatedShelves[shelfIndex] = [...updatedShelves[shelfIndex], newInstance];
       setFridgeShelves(updatedShelves);
     } else {
-      // Opcional: Feedback de que no hay espacio
       console.warn("No hay espacio suficiente en esta bandeja");
     }
   };
 
   const removeProduct = (e: React.MouseEvent, shelfIndex: number, instanceId: string) => {
-    e.stopPropagation(); // Evitar que el clic en eliminar active el clic de la bandeja
+    e.stopPropagation(); 
     const updatedShelves = [...fridgeShelves];
     updatedShelves[shelfIndex] = updatedShelves[shelfIndex].filter(p => p.instanceId !== instanceId);
     setFridgeShelves(updatedShelves);
@@ -215,26 +214,55 @@ const App: React.FC = () => {
 
       {/* Panel de Productos Lateral */}
       <aside className="w-96 bg-white border-r border-zinc-200 flex flex-col overflow-hidden shrink-0 z-40">
-        <div className="p-6 pb-4 border-b border-zinc-100">
+        <div className="p-6 pb-4 border-b border-zinc-100 bg-white">
            <h1 className="text-xl font-black text-zinc-900 uppercase tracking-tighter italic mb-4">Planograma</h1>
-           <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Modelo de Heladera</label>
-              <select className="bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-xs font-bold outline-none cursor-pointer"><option>{fridge.model}</option></select>
+           
+           <div className="grid grid-cols-1 gap-4">
+              {/* Nuevos Selectores: Canal, GEC y Tipo */}
+              <div className="grid grid-cols-2 gap-3">
+                 <div className="flex flex-col gap-1.5">
+                    <label className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Canal</label>
+                    <select className="bg-blue-50/50 border border-blue-100 rounded-xl px-4 py-2 text-[11px] font-bold outline-none cursor-pointer focus:border-blue-400">
+                       <option>OTROS</option>
+                    </select>
+                 </div>
+                 <div className="flex flex-col gap-1.5">
+                    <label className="text-[9px] font-black text-blue-500 uppercase tracking-widest">GEC</label>
+                    <select className="bg-blue-50/50 border border-blue-100 rounded-xl px-4 py-2 text-[11px] font-bold outline-none cursor-pointer focus:border-blue-400">
+                       <option>OTROS</option>
+                    </select>
+                 </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                 <label className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Tipo</label>
+                 <select className="bg-blue-50/50 border border-blue-100 rounded-xl px-4 py-2 text-[11px] font-bold outline-none cursor-pointer focus:border-blue-400">
+                    <option>OTROS</option>
+                 </select>
+              </div>
+
+              {/* Selector Modelo */}
+              <div className="flex flex-col gap-1.5 pt-2 border-t border-zinc-50">
+                 <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Modelo de Heladera</label>
+                 <select className="bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-[11px] font-bold outline-none cursor-pointer focus:border-red-500 transition-colors">
+                    <option>{fridge.model}</option>
+                 </select>
+              </div>
            </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4">
-          <div className="flex flex-col gap-2 px-2">
+        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4 bg-zinc-50/30">
+          <div className="flex flex-col gap-2 px-2 sticky top-0 z-10 bg-white/80 backdrop-blur pb-2">
             <input 
               type="text" placeholder="Filtrar por nombre o SKU..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-zinc-50 border border-zinc-200 rounded-2xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-red-500/20 transition-all outline-none"
+              className="w-full bg-white border border-zinc-200 rounded-2xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-red-500/20 transition-all outline-none"
             />
           </div>
 
           <div className="flex flex-col gap-4">
             {(Object.entries(productsByBrand) as [string, Product[]][]).map(([brand, items]) => (
               <div key={brand} className="mb-2">
-                <button onClick={() => toggleBrandCollapse(brand)} className="flex items-center justify-between w-full py-2 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-red-600 transition-colors border-b border-zinc-50">
+                <button onClick={() => toggleBrandCollapse(brand)} className="flex items-center justify-between w-full py-2 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-red-600 transition-colors border-b border-zinc-100">
                   <span>{brand}</span>
                   <svg className={`w-3 h-3 transition-transform ${collapsedBrands[brand] ? '' : 'rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                 </button>
@@ -300,7 +328,6 @@ const App: React.FC = () => {
                   onClick={() => handleShelfClick(idx)}
                   className={`flex-1 relative border-b border-zinc-100 flex items-end justify-start overflow-visible transition-colors cursor-pointer group/shelf ${selectedProduct ? 'hover:bg-red-50/50' : ''}`}
                 >
-                  {/* Indicator highlight when product selected */}
                   {selectedProduct && (
                     <div className="absolute inset-0 border-2 border-transparent group-hover/shelf:border-red-400/30 transition-all pointer-events-none z-[40]"></div>
                   )}
