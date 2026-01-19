@@ -3,7 +3,6 @@ import React, { useState, useMemo } from 'react';
 import { Product, Slot, POPMaterial } from './types';
 
 const INITIAL_PRODUCTS: Product[] = [
-  // CEPITA (Altura ajustada para realismo)
   { 
     brand: "CEPITA", 
     sku: 100926, 
@@ -123,17 +122,42 @@ const INITIAL_PRODUCTS: Product[] = [
     packing: "LATA 310mL",
     width: 57,
     height: 139
-  },
-  {
-    brand: "OTROS",
-    description: "Vacio",
-    image: "https://firebasestorage.googleapis.com/v0/b/femsa-ur.firebasestorage.app/o/productos%2F172033.png?alt=media&token=560b6f65-46bb-4e0f-b07b-7a60ba807aaa",
-    category: "OTROS",
-    packing: "N/A",
-    width: 50,
-    height: 100,
-    sku: 999999
   }
+];
+
+const POP_MATERIALS: POPMaterial[] = [
+  { 
+    id: 'h1', 
+    description: 'Coca-Cola Original', 
+    image: 'https://firebasestorage.googleapis.com/v0/b/femsa-ur.firebasestorage.app/o/header%2Fheader_classic.png?alt=media', 
+    type: 'header' 
+  },
+  { 
+    id: 'h2', 
+    description: 'Coca-Cola No Sugar', 
+    image: 'https://firebasestorage.googleapis.com/v0/b/femsa-ur.firebasestorage.app/o/header%2Fheader_zero.png?alt=media', 
+    type: 'header' 
+  },
+  { 
+    id: 'w1', 
+    description: 'Wincha Roja', 
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfI7-5-K-5-O_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0&s', // Placeholder real
+    type: 'wincha' 
+  },
+  { 
+    id: 'w2', 
+    description: 'Wincha Negra', 
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRz-S4X4O8q-YJ_qF5zU_Xy9Y1VzG2z1eR1z3zR8Z1VzG2z1eR&s',
+    type: 'wincha' 
+  }
+];
+
+// URLs simuladas para winchas de mejor calidad visual
+const WINCHA_OPTIONS = [
+  { id: 'w_red', description: 'Wincha Roja Clásica', color: '#e51d2e', brand: 'Coca-Cola' },
+  { id: 'w_black', description: 'Wincha Sin Azúcar', color: '#000000', brand: 'Zero Sugar' },
+  { id: 'w_green', description: 'Wincha Sprite', color: '#008a00', brand: 'Sprite' },
+  { id: 'w_orange', description: 'Wincha Fanta', color: '#f7941e', brand: 'Fanta' },
 ];
 
 const AVAILABLE_FRIDGES = [
@@ -144,6 +168,9 @@ const App: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [collapsedBrands, setCollapsedBrands] = useState<Record<string, boolean>>({});
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  
+  const [selectedHeader, setSelectedHeader] = useState<POPMaterial | null>(null);
+  const [selectedWinchaColor, setSelectedWinchaColor] = useState<string | null>(null);
 
   const [fridgeShelves, setFridgeShelves] = useState<Slot[][]>([[], [], [], []]);
   
@@ -185,8 +212,6 @@ const App: React.FC = () => {
       const newInstance: Slot = { ...selectedProduct, instanceId: `${selectedProduct.sku}-${Date.now()}` };
       updatedShelves[shelfIndex] = [...updatedShelves[shelfIndex], newInstance];
       setFridgeShelves(updatedShelves);
-    } else {
-      console.warn("No hay espacio suficiente en esta bandeja");
     }
   };
 
@@ -207,62 +232,113 @@ const App: React.FC = () => {
         <div className="w-12 h-12 bg-[#e51d2e] rounded-xl flex items-center justify-center shadow-lg shadow-red-900/40 mb-4 transform hover:scale-105 transition-all cursor-pointer">
           <span className="text-white font-black text-xl italic">C</span>
         </div>
-        <button className="text-red-500 p-3 bg-red-500/10 rounded-2xl scale-110">
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-        </button>
       </nav>
 
-      {/* Panel de Productos Lateral */}
+      {/* Panel Lateral */}
       <aside className="w-96 bg-white border-r border-zinc-200 flex flex-col overflow-hidden shrink-0 z-40">
         <div className="p-6 pb-4 border-b border-zinc-100 bg-white">
            <h1 className="text-xl font-black text-zinc-900 uppercase tracking-tighter italic mb-4">Planograma</h1>
            
            <div className="grid grid-cols-1 gap-4">
-              {/* Nuevos Selectores: Canal, GEC y Tipo */}
               <div className="grid grid-cols-2 gap-3">
                  <div className="flex flex-col gap-1.5">
                     <label className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Canal</label>
-                    <select className="bg-blue-50/50 border border-blue-100 rounded-xl px-4 py-2 text-[11px] font-bold outline-none cursor-pointer focus:border-blue-400">
+                    <select className="bg-blue-50/50 border border-blue-100 rounded-xl px-4 py-2 text-[11px] font-bold outline-none cursor-pointer">
                        <option>OTROS</option>
                     </select>
                  </div>
                  <div className="flex flex-col gap-1.5">
                     <label className="text-[9px] font-black text-blue-500 uppercase tracking-widest">GEC</label>
-                    <select className="bg-blue-50/50 border border-blue-100 rounded-xl px-4 py-2 text-[11px] font-bold outline-none cursor-pointer focus:border-blue-400">
+                    <select className="bg-blue-50/50 border border-blue-100 rounded-xl px-4 py-2 text-[11px] font-bold outline-none cursor-pointer">
                        <option>OTROS</option>
                     </select>
                  </div>
               </div>
-
               <div className="flex flex-col gap-1.5">
                  <label className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Tipo</label>
-                 <select className="bg-blue-50/50 border border-blue-100 rounded-xl px-4 py-2 text-[11px] font-bold outline-none cursor-pointer focus:border-blue-400">
+                 <select className="bg-blue-50/50 border border-blue-100 rounded-xl px-4 py-2 text-[11px] font-bold outline-none cursor-pointer">
                     <option>OTROS</option>
                  </select>
               </div>
-
-              {/* Selector Modelo */}
               <div className="flex flex-col gap-1.5 pt-2 border-t border-zinc-50">
                  <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Modelo de Heladera</label>
-                 <select className="bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-[11px] font-bold outline-none cursor-pointer focus:border-red-500 transition-colors">
+                 <select className="bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-[11px] font-bold outline-none">
                     <option>{fridge.model}</option>
                  </select>
               </div>
            </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4 bg-zinc-50/30">
+        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-6 bg-zinc-50/30">
+          
+          {/* Sección Material POP - MEJORADA */}
+          <div>
+            <button onClick={() => toggleBrandCollapse('pop')} className="flex items-center justify-between w-full py-2 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-red-600 border-b border-red-100">
+              <span>Material POP</span>
+              <svg className={`w-3 h-3 transition-transform ${collapsedBrands['pop'] ? '' : 'rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            {!collapsedBrands['pop'] && (
+              <div className="flex flex-col gap-4 mt-4 px-1">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center ml-1">
+                    <p className="text-[9px] font-black text-zinc-400 uppercase">Headers</p>
+                    {selectedHeader && <button onClick={() => setSelectedHeader(null)} className="text-[8px] font-bold text-red-500 uppercase hover:underline">Limpiar</button>}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {POP_MATERIALS.filter(m => m.type === 'header').map(m => (
+                      <div 
+                        key={m.id} 
+                        onClick={() => setSelectedHeader(m === selectedHeader ? null : m)}
+                        className={`cursor-pointer border-2 rounded-xl p-2 transition-all group ${selectedHeader?.id === m.id ? 'border-red-600 bg-red-50 shadow-md' : 'border-zinc-100 bg-white hover:border-zinc-300'}`}
+                      >
+                        <div className="h-14 bg-zinc-50 rounded-lg flex items-center justify-center p-2">
+                          <img src={m.image} alt={m.description} className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform" />
+                        </div>
+                        <p className="text-[8px] font-black text-center mt-2 truncate text-zinc-600 uppercase tracking-tighter">{m.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center ml-1">
+                    <p className="text-[9px] font-black text-zinc-400 uppercase">Winchas de Estante</p>
+                    {selectedWinchaColor && <button onClick={() => setSelectedWinchaColor(null)} className="text-[8px] font-bold text-red-500 uppercase hover:underline">Limpiar</button>}
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {WINCHA_OPTIONS.map(opt => (
+                      <div 
+                        key={opt.id} 
+                        onClick={() => setSelectedWinchaColor(opt.color === selectedWinchaColor ? null : opt.color)}
+                        className={`cursor-pointer border-2 rounded-xl p-3 transition-all flex items-center gap-4 ${selectedWinchaColor === opt.color ? 'border-red-600 bg-red-50 shadow-md' : 'border-zinc-100 bg-white hover:border-zinc-300'}`}
+                      >
+                        <div className="w-16 h-6 rounded border border-zinc-200 shadow-inner flex items-center justify-center overflow-hidden" style={{ backgroundColor: opt.color }}>
+                           <span className="text-[7px] text-white font-black uppercase opacity-60 tracking-widest">{opt.brand}</span>
+                        </div>
+                        <div className="flex flex-col">
+                           <p className="text-[9px] font-black text-zinc-900 uppercase tracking-tighter leading-none">{opt.description}</p>
+                           <p className="text-[8px] text-zinc-400 font-bold uppercase mt-1">{opt.brand}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Buscador de Bebidas */}
           <div className="flex flex-col gap-2 px-2 sticky top-0 z-10 bg-white/80 backdrop-blur pb-2">
             <input 
-              type="text" placeholder="Filtrar por nombre o SKU..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-white border border-zinc-200 rounded-2xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-red-500/20 transition-all outline-none"
+              type="text" placeholder="Filtrar bebidas..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-white border border-zinc-200 rounded-2xl px-4 py-3 text-xs font-bold outline-none"
             />
           </div>
 
           <div className="flex flex-col gap-4">
             {(Object.entries(productsByBrand) as [string, Product[]][]).map(([brand, items]) => (
               <div key={brand} className="mb-2">
-                <button onClick={() => toggleBrandCollapse(brand)} className="flex items-center justify-between w-full py-2 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-red-600 transition-colors border-b border-zinc-100">
+                <button onClick={() => toggleBrandCollapse(brand)} className="flex items-center justify-between w-full py-2 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 border-b border-zinc-100">
                   <span>{brand}</span>
                   <svg className={`w-3 h-3 transition-transform ${collapsedBrands[brand] ? '' : 'rotate-180'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                 </button>
@@ -276,16 +352,9 @@ const App: React.FC = () => {
                       >
                         <div className="aspect-square bg-zinc-50 flex items-center justify-center p-4 relative overflow-hidden">
                            <img src={product.image} alt={product.description} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" />
-                           <div className="absolute top-2 right-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded-full text-[8px] font-black text-zinc-500 shadow-sm border border-zinc-100 uppercase tracking-tighter">
-                             {product.packing}
-                           </div>
                         </div>
                         <div className="p-3 flex flex-col gap-1">
                            <h3 className="text-[10px] font-black text-zinc-900 leading-tight uppercase line-clamp-2">{product.description}</h3>
-                           <div className="flex justify-between items-center mt-1">
-                             <span className="text-[9px] font-bold text-red-600 tracking-tight">{product.packing || '--'}</span>
-                             <span className="text-[9px] font-mono text-zinc-400 uppercase">SKU: {product.sku || 'N/A'}</span>
-                           </div>
                         </div>
                       </div>
                     ))}
@@ -300,14 +369,18 @@ const App: React.FC = () => {
       {/* Main Viewport */}
       <main className="flex-1 relative flex items-center justify-center bg-zinc-100 p-8">
         
-        {/* VR10 REFRIGERATOR CONTAINER */}
+        {/* REFRIGERATOR CONTAINER */}
         <div 
           style={{ width: fridge.extW * SCALE, height: fridge.extH * SCALE }}
           className="relative bg-[#e51d2e] rounded-sm shadow-[0_50px_100px_rgba(0,0,0,0.3)] flex flex-col z-10 overflow-hidden"
         >
-          {/* Top Header */}
-          <div className="h-[10%] w-full flex items-center justify-center relative bg-[#e51d2e]">
+          {/* Header Area */}
+          <div className="h-[10%] w-full flex items-center justify-center relative bg-[#e51d2e] overflow-hidden">
+            {selectedHeader ? (
+              <img src={selectedHeader.image} className="h-full w-full object-contain p-2 animate-fade-in" alt="Header" />
+            ) : (
               <span className="text-white font-black text-2xl italic tracking-tighter">Coca-Cola</span>
+            )}
             <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-black/10"></div>
           </div>
 
@@ -319,22 +392,26 @@ const App: React.FC = () => {
               boxShadow: 'inset 0 0 80px rgba(0,0,0,0.05)'
             }}
           >
-            <div className="absolute inset-0 pointer-events-none z-10 bg-gradient-to-tr from-transparent via-white/5 to-white/10 opacity-30"></div>
-
             <div className="absolute inset-0 flex flex-col">
               {fridgeShelves.map((shelfProducts, idx) => (
                 <div
                   key={idx}
                   onClick={() => handleShelfClick(idx)}
-                  className={`flex-1 relative border-b border-zinc-100 flex items-end justify-start overflow-visible transition-colors cursor-pointer group/shelf ${selectedProduct ? 'hover:bg-red-50/50' : ''}`}
+                  className={`flex-1 relative border-b border-zinc-100 flex items-end justify-start overflow-visible transition-colors cursor-pointer group/shelf`}
                 >
-                  {selectedProduct && (
-                    <div className="absolute inset-0 border-2 border-transparent group-hover/shelf:border-red-400/30 transition-all pointer-events-none z-[40]"></div>
-                  )}
+                  {/* Wincha / Tira de estante - MEJORADA */}
+                  <div className="absolute bottom-0 left-0 right-0 h-[15px] z-[35] shadow-sm overflow-hidden flex items-center">
+                    {selectedWinchaColor ? (
+                      <div className="w-full h-full animate-fade-in flex items-center justify-center relative" style={{ backgroundColor: selectedWinchaColor }}>
+                         <div className="absolute inset-0 opacity-10 bg-white pointer-events-none" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)' }}></div>
+                         <span className="text-[8px] text-white font-black uppercase tracking-[0.4em] opacity-40">BRAND DESIGN</span>
+                      </div>
+                    ) : (
+                      <div className="w-full h-full bg-zinc-200 border-t border-zinc-300"></div>
+                    )}
+                  </div>
 
-                  <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-zinc-200 z-[25] shadow-sm"></div>
-
-                  <div className="flex items-end justify-start gap-0 w-full pb-3 z-[30] px-1 overflow-visible">
+                  <div className="flex items-end justify-start gap-0 w-full pb-[18px] z-[30] px-1 overflow-visible">
                     {shelfProducts.map((p) => (
                       <div
                         key={p.instanceId}
@@ -373,31 +450,23 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Panel Informativo Flotante */}
+        {/* Panel Informativo */}
         <div className="absolute bottom-12 right-12 p-8 bg-white shadow-2xl rounded-[2.5rem] border border-zinc-100 w-80">
-           <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-6">Instrucciones de Uso</h3>
+           <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-6">Controles</h3>
            <div className="space-y-4">
-              <div className="flex gap-4 items-start">
-                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 transition-colors ${!selectedProduct ? 'bg-red-600 text-white' : 'bg-zinc-100 text-zinc-400'}`}>1</div>
-                 <p className="text-[11px] text-zinc-600 font-medium">Haz clic en un producto del panel izquierdo para seleccionarlo.</p>
+              <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-100">
+                <p className="text-[11px] text-zinc-600 font-medium">1. Personaliza con <strong>Material POP</strong>.</p>
+                <p className="text-[11px] text-zinc-600 font-medium mt-2">2. Arma el planograma con <strong>Bebidas</strong>.</p>
               </div>
-              <div className="flex gap-4 items-start">
-                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 transition-colors ${selectedProduct ? 'bg-red-600 text-white' : 'bg-zinc-100 text-zinc-400'}`}>2</div>
-                 <p className="text-[11px] text-zinc-600 font-medium">Haz clic en la bandeja de la heladera donde quieras ubicarlo.</p>
-              </div>
-              
-              <div className="mt-6 pt-6 border-t border-zinc-100">
-                <h4 className="text-[10px] font-black uppercase text-zinc-400 mb-2">Estado Actual</h4>
+              <div className="mt-4">
+                <h4 className="text-[10px] font-black uppercase text-zinc-400 mb-2">Selección Actual</h4>
                 {selectedProduct ? (
-                  <div className="p-3 bg-red-50 rounded-xl border border-red-100 flex items-center gap-3">
-                     <img src={selectedProduct.image} className="w-8 h-8 object-contain" />
-                     <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase leading-tight">{selectedProduct.description}</span>
-                        <span className="text-[9px] text-red-600 font-bold uppercase tracking-tighter">Listo para ubicar</span>
-                     </div>
+                  <div className="p-2 bg-red-50 rounded-lg flex items-center gap-2 border border-red-100">
+                    <img src={selectedProduct.image} className="w-6 h-6 object-contain" />
+                    <span className="text-[9px] font-black uppercase truncate">{selectedProduct.description}</span>
                   </div>
                 ) : (
-                  <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-100 text-[10px] font-bold text-zinc-400 text-center italic">Ningún producto seleccionado</div>
+                  <p className="text-[9px] text-zinc-400 italic">Ninguna bebida seleccionada</p>
                 )}
               </div>
            </div>
@@ -406,21 +475,23 @@ const App: React.FC = () => {
 
       <style>{`
         .glow-green { text-shadow: 0 0 10px rgba(34, 197, 94, 0.8); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;  
           overflow: hidden;
         }
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(-5px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fade-in 0.4s ease-out forwards; }
         @keyframes pulse-border {
           0% { border-color: rgba(229, 29, 46, 1); box-shadow: 0 0 0 0 rgba(229, 29, 46, 0.4); }
           70% { border-color: rgba(229, 29, 46, 1); box-shadow: 0 0 0 10px rgba(229, 29, 46, 0); }
           100% { border-color: rgba(229, 29, 46, 1); box-shadow: 0 0 0 0 rgba(229, 29, 46, 0); }
         }
-        .pulse-border {
-          animation: pulse-border 2s infinite;
-        }
+        .pulse-border { animation: pulse-border 2s infinite; }
       `}</style>
     </div>
   );
